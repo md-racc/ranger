@@ -34,6 +34,7 @@ _SUBMAP_LABELS = {
         'd': 'Disk',
         'f': 'Find',
         'n': 'Next search',
+        'p': 'Preview',
         's': 'SSH',
         'y': 'Clipboard',
     },
@@ -68,6 +69,12 @@ _KEY_LABELS = {
     ((32, ord('f')), '/'): 'Find',
     ((32, ord('f')), 't'): 'Travel',
     ((32, ord('f')), 'c'): 'Jump to dir',
+
+    # ── <Space>p  preview ────────────────────────────────────────────────────
+    ((32, ord('p')), 'p'): 'Toggle preview',
+    ((32, ord('p')), 's'): 'Peek (one file)',
+    ((32, ord('p')), 'a'): 'Render all videos',
+    ((32, ord('p')), 'c'): 'Clear cache',
 
     # ── <Space>d  disk usage ─────────────────────────────────────────────────
     ((32, ord('d')), 'c'): 'Cumulative size',
