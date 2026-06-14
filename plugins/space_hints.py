@@ -31,8 +31,11 @@ _SUBMAP_LABELS = {
     # <Space> top-level — every letter groups many children, all collapse.
     (32,): {
         'a': 'Archive',
+        'b': 'Bin / trash',
         'd': 'Disk',
+        'e': 'Encrypt',
         'f': 'Find',
+        'h': 'Hash',
         'n': 'Next search',
         'p': 'Preview',
         's': 'SSH',
@@ -60,6 +63,20 @@ _KEY_LABELS = {
     ((32,), 'X'): 'Delete',
     ((32,), 'q'): 'Quit',
     ((32,), 'z'): 'Zoxide jump',
+
+    # ── <Space>b  trash / bin ────────────────────────────────────────────────
+    ((32, ord('b')), 'l'): 'List trash',
+    ((32, ord('b')), 'r'): 'Restore from trash',
+    ((32, ord('b')), 'e'): 'Empty trash',
+
+    # ── <Space>h  checksums / hashes ────────────────────────────────────────
+    ((32, ord('h')), 's'): 'SHA-256 of selection',
+    ((32, ord('h')), 'v'): 'Verify checksum file',
+    ((32, ord('h')), 'c'): 'Copy SHA-256 to clipboard',
+
+    # ── <Space>e  encrypt / decrypt / veracrypt ──────────────────────────────
+    ((32, ord('e')), 'e'): 'Encrypt (age / gpg)',
+    ((32, ord('e')), 'd'): 'Decrypt (.age / .gpg)',
 
     # ── <Space>f  find / fzf ─────────────────────────────────────────────────
     ((32, ord('f')), 'f'): 'Fuzzy find (cwd)',
