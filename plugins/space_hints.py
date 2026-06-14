@@ -30,11 +30,17 @@ import ranger.gui.widgets.view_base as _view_base
 _SUBMAP_LABELS = {
     # <Space> top-level — every letter groups many children, all collapse.
     (32,): {
+        'a': 'Archive',
         'd': 'Disk',
         'f': 'Find',
         'n': 'Next search',
         's': 'SSH',
         'y': 'Clipboard',
+    },
+    # <Space>a — 'e' and 'c' each have 6-7 children that collapse.
+    (32, ord('a')): {
+        'e': 'Extract',
+        'c': 'Compress',
     },
     # p — only 'h' collapses (phl + pht share first char 'h').
     (ord('p'),): {
@@ -70,6 +76,27 @@ _KEY_LABELS = {
     ((32, ord('d')), 'n'): 'ncdu (here)',
     ((32, ord('d')), '/'): 'ncdu /',
     ((32, ord('d')), '~'): 'ncdu ~',
+
+    # ── <Space>a  archive — non-collapsing singles ───────────────────────────
+    ((32, ord('a')), 'l'): 'List archive',
+    ((32, ord('a')), 't'): 'Test archive',
+    ((32, ord('a')), 'k'): 'Cancel extract',
+
+    # ── <Space>ae  extract ───────────────────────────────────────────────────
+    ((32, ord('a'), ord('e')), 'd'): 'Extract',
+    ((32, ord('a'), ord('e')), 'h'): 'Extract here',
+    ((32, ord('a'), ord('e')), 's'): 'Smart extract',
+    ((32, ord('a'), ord('e')), 'f'): 'Flatten extract',
+    ((32, ord('a'), ord('e')), 'D'): 'Extract to...',
+    ((32, ord('a'), ord('e')), 'o'): 'Extract & open',
+
+    # ── <Space>ac  compress (aggregate) ─────────────────────────────────────
+    ((32, ord('a'), ord('c')), 'z'): '.tar.gz',
+    ((32, ord('a'), ord('c')), 'x'): '.tar.xz',
+    ((32, ord('a'), ord('c')), 'Z'): '.tar.zst',
+    ((32, ord('a'), ord('c')), 'b'): '.tar.bz2',
+    ((32, ord('a'), ord('c')), 'p'): '.zip',
+    ((32, ord('a'), ord('c')), '7'): '.7z',
 
     # ── <Space>s  SSH ────────────────────────────────────────────────────────
     ((32, ord('s')), 's'): 'Mount SSH',
