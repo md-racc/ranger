@@ -39,12 +39,20 @@ _SUBMAP_LABELS = {
         'n': 'Next search',
         'p': 'Preview',
         's': 'SSH',
+        'v': 'Transform',
         'y': 'Clipboard',
     },
     # <Space>a — 'e' and 'c' each have 6-7 children that collapse.
     (32, ord('a')): {
         'e': 'Extract',
         'c': 'Compress',
+    },
+    # <Space>v — four domain groups, each with multiple children.
+    (32, ord('v')): {
+        'i': 'Image',
+        'v': 'Video',
+        'p': 'PDF',
+        'n': 'Name / organize',
     },
     # p — only 'h' collapses (phl + pht share first char 'h').
     (ord('p'),): {
@@ -126,6 +134,31 @@ _KEY_LABELS = {
     ((32, ord('s')), 's'): 'Mount SSH',
     ((32, ord('s')), 'S'): 'Shell via SSH',
     ((32, ord('s')), 'u'): 'Unmount SSH',
+
+    # ── <Space>vi  image ops ─────────────────────────────────────────────────
+    ((32, ord('v'), ord('i')), 'r'): 'Resize',
+    ((32, ord('v'), ord('i')), 'c'): 'Convert format',
+    ((32, ord('v'), ord('i')), 's'): 'Strip EXIF',
+    ((32, ord('v'), ord('i')), 'o'): 'Optimize',
+
+    # ── <Space>vv  video / audio ops ─────────────────────────────────────────
+    ((32, ord('v'), ord('v')), 't'): 'Transcode',
+    ((32, ord('v'), ord('v')), 'a'): 'Extract audio',
+    ((32, ord('v'), ord('v')), 'x'): 'Trim',
+    ((32, ord('v'), ord('v')), 'g'): 'Make GIF',
+    ((32, ord('v'), ord('v')), 's'): 'Snapshot',
+
+    # ── <Space>vp  PDF ops ───────────────────────────────────────────────────
+    ((32, ord('v'), ord('p')), 'm'): 'Merge',
+    ((32, ord('v'), ord('p')), 's'): 'Split pages',
+    ((32, ord('v'), ord('p')), 'r'): 'Rotate',
+    ((32, ord('v'), ord('p')), 'c'): 'Compress',
+    ((32, ord('v'), ord('p')), 'o'): 'OCR',
+
+    # ── <Space>vn  name / organize ───────────────────────────────────────────
+    ((32, ord('v'), ord('n')), 'e'): 'Rename by EXIF date',
+    ((32, ord('v'), ord('n')), 'm'): 'Rename by mtime',
+    ((32, ord('v'), ord('n')), 's'): 'Sort into YYYY/MM',
 
     # ── <Space>y  clipboard ──────────────────────────────────────────────────
     ((32, ord('y')), 'y'): 'Copy file contents to clipboard',
