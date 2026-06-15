@@ -32,6 +32,7 @@ _SUBMAP_LABELS = {
     (32,): {
         'a': 'Archive',
         'b': 'Bin / trash',
+        'c': 'Permissions',
         'd': 'Disk',
         'e': 'Encrypt',
         'f': 'Find',
@@ -40,6 +41,7 @@ _SUBMAP_LABELS = {
         'n': 'Next search',
         'p': 'Preview',
         's': 'SSH',
+        't': 'Transfer',
         'v': 'Transform',
         'y': 'Clipboard',
     },
@@ -130,6 +132,20 @@ _KEY_LABELS = {
     ((32, ord('a'), ord('c')), 'b'): '.tar.bz2',
     ((32, ord('a'), ord('c')), 'p'): '.zip',
     ((32, ord('a'), ord('c')), '7'): '.7z',
+
+    # ── <Space>t  transfer ───────────────────────────────────────────────────
+    ((32, ord('t')), 'm'): 'Move to...',
+    ((32, ord('t')), 'c'): 'Copy to...',
+    ((32, ord('t')), 'r'): 'Rsync to...',
+    ((32, ord('t')), 'd'): 'Rsync dry-run (preview)',
+    ((32, ord('t')), 'w'): 'Send via croc / wormhole',
+    ((32, ord('t')), 'W'): 'Receive via croc / wormhole',
+
+    # ── <Space>c  permissions ────────────────────────────────────────────────
+    ((32, ord('c')), 'm'): 'Chmod',
+    ((32, ord('c')), 'o'): 'Chown',
+    ((32, ord('c')), 'R'): 'Chmod recursive',
+    ((32, ord('c')), 'O'): 'Chown recursive',
 
     # ── <Space>s  SSH ────────────────────────────────────────────────────────
     ((32, ord('s')), 's'): 'Mount SSH',
