@@ -8,6 +8,9 @@ from ranger.api.commands import Command
 from cmds._util import ask_yes, require_tool, transfer_items, unique_dest
 
 
+_QF_EDITORS = frozenset({'nvim', 'vim', 'gvim', 'vi'})
+
+
 class fzf_select(Command):
     """:fzf_select
 
@@ -386,3 +389,55 @@ class flatten_write(Command):
         if left:
             prompt += " ({} deeper item(s) stay)".format(left)
         ask_yes(self.fm, prompt, _do)
+
+
+class rg_content_search(Command):
+    """:rg_content_search <pattern>  (<Space>fg)
+
+    Search file contents recursively with rg --vimgrep from cwd,
+    then open results in $EDITOR quickfix (nvim/vim -q <file>).
+    Falls back to coloured rg output in $PAGER for other editors.
+
+    Without argument: pre-fills the console so you can type the pattern.
+    """
+
+    def execute(self):
+        pattern = self.rest(1)
+        if not pattern:
+            self.fm.open_console('rg_content_search ')
+            return
+
+        if not require_tool(self.fm, 'rg', "rg (ripgrep) not found"):
+            return
+
+        root   = self.fm.thisdir.path
+        editor = (os.environ.get('EDITOR') or os.environ.get('VISUAL') or 'nvim')
+        base   = os.path.basename(shlex.split(editor)[0])
+
+        if base in _QF_EDITORS:
+            result = subprocess.run(
+                ['rg', '--vimgrep', '--color=never', '--', pattern, root],
+                capture_output=True, text=True,
+            )
+            if not result.stdout.strip():
+                self.fm.notify('No matches for: ' + pattern)
+                return
+            with tempfile.NamedTemporaryFile(
+                mode='w', suffix='.qf', prefix='ranger_rg_', delete=False
+            ) as tf:
+                tf.write(result.stdout)
+                qf_path = tf.name
+            try:
+                self.fm.run(shlex.split(editor) + ['-q', qf_path])
+            finally:
+                try:
+                    os.unlink(qf_path)
+                except OSError:
+                    pass
+        else:
+            pager = (os.environ.get('PAGER') or 'more')
+            self.fm.run(
+                'rg --color=always -- {} {} | {}'.format(
+                    shlex.quote(pattern), shlex.quote(root), pager
+                )
+            )

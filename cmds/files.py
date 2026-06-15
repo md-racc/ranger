@@ -127,3 +127,38 @@ class dedup(Command):
             self.fm.notify(
                 "Install rmlint (preferred) or fdupes",
                 bad=True)
+
+
+class disk_top(Command):
+    """:disk_top [N]  (<Space>dt)
+
+    Show the N largest files under cwd, sorted by size descending.
+    Uses fd (if available) for the file list, otherwise find.
+    N defaults to 20.
+    """
+
+    _DEFAULT_N = 20
+
+    def execute(self):
+        try:
+            n = int(self.arg(1)) if self.arg(1) else self._DEFAULT_N
+        except ValueError:
+            n = self._DEFAULT_N
+
+        cwd   = self.fm.thisdir.path
+        pager = os.environ.get('PAGER') or 'more'
+
+        if shutil.which('fd'):
+            # -H includes dotfiles; --no-ignore includes .gitignored files
+            finder = 'fd --type f -H --no-ignore -0 . {}'.format(shlex.quote(cwd))
+        else:
+            finder = 'find {} -type f -print0'.format(shlex.quote(cwd))
+
+        cmd = (
+            '{finder} 2>/dev/null'
+            ' | xargs -0 du -sh 2>/dev/null'
+            ' | sort -rh'
+            ' | head -{n}'
+            ' | {pager}'
+        ).format(finder=finder, n=n, pager=pager)
+        self.fm.run(cmd)

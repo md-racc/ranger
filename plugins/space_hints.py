@@ -100,6 +100,7 @@ _KEY_LABELS = {
     ((32, ord('f')), '/'): 'Find',
     ((32, ord('f')), 't'): 'Travel',
     ((32, ord('f')), 'c'): 'Jump to dir',
+    ((32, ord('f')), 'g'): 'Search file contents (rg → $EDITOR quickfix)',
 
     # ── <Space>p  preview ────────────────────────────────────────────────────
     ((32, ord('p')), 'p'): 'Toggle preview',
@@ -115,6 +116,8 @@ _KEY_LABELS = {
     ((32, ord('d')), '/'): 'ncdu /',
     ((32, ord('d')), '~'): 'ncdu ~',
     ((32, ord('d')), 'd'): 'Dedup (rmlint / fdupes)',
+    ((32, ord('d')), 'f'): 'Filesystem free space (df -h)',
+    ((32, ord('d')), 't'): 'Top-N largest files in subtree (fd / find)',
 
     # ── <Space>a  archive — non-collapsing singles ───────────────────────────
     ((32, ord('a')), 'l'): 'List archive',
