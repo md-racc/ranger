@@ -39,6 +39,7 @@ _SUBMAP_LABELS = {
         'g': 'Git',
         'h': 'Hash',
         'l': 'LAN serve',
+        'm': 'Mounts',
         'n': 'Next search',
         'o': 'Open',
         'p': 'Preview',
@@ -154,6 +155,14 @@ _KEY_LABELS = {
     ((32, ord('s')), 's'): 'Mount SSH',
     ((32, ord('s')), 'S'): 'Shell via SSH',
     ((32, ord('s')), 'u'): 'Unmount SSH',
+
+    # ── <Space>m  mounts ─────────────────────────────────────────────────────
+    ((32, ord('m')), 'm'): 'Mount block device (udisksctl)',
+    ((32, ord('m')), 'u'): 'Unmount block device (udisksctl)',
+    ((32, ord('m')), 'l'): 'List block devices (lsblk)',
+    ((32, ord('m')), 'M'): 'Go to /mnt',
+    ((32, ord('m')), 'i'): 'Loop-mount image / ISO (udisksctl loop-setup)',
+    ((32, ord('m')), 'e'): 'Eject / power-off device (safe USB removal)',
 
     # ── <Space>g  git ────────────────────────────────────────────────────────
     ((32, ord('g')), 'g'): 'Lazygit',
