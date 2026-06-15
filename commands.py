@@ -31,5 +31,6 @@ from cmds.security   import *   # hash_show/verify/copy, encrypt/decrypt
 from cmds.network    import *   # lan_serve/file/qr/kill
 from cmds.transform  import *   # image/video/pdf/name ops
 from cmds.open_here  import *   # open_project, spawn_terminal, cd_git_root, dir_diff, drag_out
+from cmds.filter_ext import *   # _TagFilter registration, filter_tag/flat
 from cmds.git        import *   # git_diff, git_discard
 from cmds.mount      import *   # device_mount, device_unmount, iso_mount, device_eject
