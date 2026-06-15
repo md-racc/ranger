@@ -112,6 +112,7 @@ _KEY_LABELS = {
     ((32, ord('d')), 'n'): 'ncdu (here)',
     ((32, ord('d')), '/'): 'ncdu /',
     ((32, ord('d')), '~'): 'ncdu ~',
+    ((32, ord('d')), 'd'): 'Dedup (rmlint / fdupes)',
 
     # ── <Space>a  archive — non-collapsing singles ───────────────────────────
     ((32, ord('a')), 'l'): 'List archive',
@@ -156,6 +157,7 @@ _KEY_LABELS = {
     # ── <Space>o  open / inspect / open-here ─────────────────────────────────
     ((32, ord('o')), 'o'): 'Open (xdg)',
     ((32, ord('o')), 'm'): 'Open in mpv',
+    ((32, ord('o')), 'd'): 'Diff',
     ((32, ord('o')), 's'): 'Stat',
     ((32, ord('o')), 'f'): 'File type / MIME',
     ((32, ord('o')), 'e'): 'Exiftool',
