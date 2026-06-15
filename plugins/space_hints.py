@@ -39,6 +39,7 @@ _SUBMAP_LABELS = {
         'h': 'Hash',
         'l': 'LAN serve',
         'n': 'Next search',
+        'o': 'Open',
         'p': 'Preview',
         's': 'SSH',
         't': 'Transfer',
@@ -151,6 +152,22 @@ _KEY_LABELS = {
     ((32, ord('s')), 's'): 'Mount SSH',
     ((32, ord('s')), 'S'): 'Shell via SSH',
     ((32, ord('s')), 'u'): 'Unmount SSH',
+
+    # ── <Space>o  open / inspect / open-here ─────────────────────────────────
+    ((32, ord('o')), 'o'): 'Open (xdg)',
+    ((32, ord('o')), 'm'): 'Open in mpv',
+    ((32, ord('o')), 's'): 'Stat',
+    ((32, ord('o')), 'f'): 'File type / MIME',
+    ((32, ord('o')), 'e'): 'Exiftool',
+    ((32, ord('o')), 'i'): 'Mediainfo',
+    ((32, ord('o')), 'j'): 'jq',
+    ((32, ord('o')), 'P'): 'Open as project ($EDITOR)',
+    ((32, ord('o')), 'G'): 'cd to git root',
+    ((32, ord('o')), 'T'): 'Spawn terminal here',
+    ((32, ord('o')), 'F'): 'GUI file manager',
+    ((32, ord('o')), 'D'): 'Dir diff',
+    ((32, ord('o')), 'h'): 'Hexdump in pager (hexyl / xxd)',
+    ((32, ord('o')), 'r'): 'Drag out (ripdrag)',
 
     # ── <Space>l  LAN serve ──────────────────────────────────────────────────
     ((32, ord('l')), 'l'): 'Serve cwd',
