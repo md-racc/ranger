@@ -36,6 +36,7 @@ _SUBMAP_LABELS = {
         'e': 'Encrypt',
         'f': 'Find',
         'h': 'Hash',
+        'l': 'LAN serve',
         'n': 'Next search',
         'p': 'Preview',
         's': 'SSH',
@@ -134,6 +135,12 @@ _KEY_LABELS = {
     ((32, ord('s')), 's'): 'Mount SSH',
     ((32, ord('s')), 'S'): 'Shell via SSH',
     ((32, ord('s')), 'u'): 'Unmount SSH',
+
+    # ── <Space>l  LAN serve ──────────────────────────────────────────────────
+    ((32, ord('l')), 'l'): 'Serve cwd',
+    ((32, ord('l')), 'f'): 'Serve file',
+    ((32, ord('l')), 'q'): 'QR code (qrcp)',
+    ((32, ord('l')), 'k'): 'Kill server',
 
     # ── <Space>vi  image ops ─────────────────────────────────────────────────
     ((32, ord('v'), ord('i')), 'r'): 'Resize',
