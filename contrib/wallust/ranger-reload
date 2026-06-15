@@ -1,0 +1,15 @@
+#!/bin/sh
+# ranger-reload: ask running rangers to re-read ~/.cache/wallust/ranger-colors.py.
+#
+# Use it as a wallust hook or call it from a theme-switch script.  SIGUSR2's
+# default action is to terminate, and ranger only installs its handler once
+# rc.conf has loaded the wallust colorscheme, so a plain `pkill -USR2 ranger`
+# kills a ranger that is still starting up.  Signal only processes whose
+# SigCgt mask shows SIGUSR2 is caught.
+for pid in $(pgrep -x ranger); do
+    cgt=$(awk '/^SigCgt:/ {print $2}' "/proc/$pid/status" 2>/dev/null) || continue
+    [ -n "$cgt" ] || continue
+    # SIGUSR2 = 12 → bit 11 of the mask (0x800)
+    [ $(( 0x$cgt & 0x800 )) -ne 0 ] && kill -USR2 "$pid" 2>/dev/null
+done
+exit 0
