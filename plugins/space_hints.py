@@ -36,6 +36,7 @@ _SUBMAP_LABELS = {
         'd': 'Disk',
         'e': 'Encrypt',
         'f': 'Find',
+        'g': 'Git',
         'h': 'Hash',
         'l': 'LAN serve',
         'n': 'Next search',
@@ -154,6 +155,15 @@ _KEY_LABELS = {
     ((32, ord('s')), 'S'): 'Shell via SSH',
     ((32, ord('s')), 'u'): 'Unmount SSH',
 
+    # ── <Space>g  git ────────────────────────────────────────────────────────
+    ((32, ord('g')), 'g'): 'Lazygit',
+    ((32, ord('g')), 'b'): 'Git blame (current file)',
+    ((32, ord('g')), 'd'): 'Git diff (current file)',
+    ((32, ord('g')), 'l'): 'Git log (current file)',
+    ((32, ord('g')), 's'): 'Git status (repo)',
+    ((32, ord('g')), 'a'): 'Stage file (git add)',
+    ((32, ord('g')), 'C'): 'Discard working-tree changes (git restore)',
+
     # ── <Space>o  open / inspect / open-here ─────────────────────────────────
     ((32, ord('o')), 'o'): 'Open (xdg)',
     ((32, ord('o')), 'm'): 'Open in mpv',
@@ -208,6 +218,9 @@ _KEY_LABELS = {
     ((32, ord('y')), 'p'): 'Copy absolute path',
     ((32, ord('y')), 'e'): 'Copy filename without extension',
     ((32, ord('y')), 'd'): 'Copy directory path',
+    ((32, ord('y')), 'r'): 'Copy path relative to cwd',
+    ((32, ord('y')), 'g'): 'Copy path relative to git root',
+    ((32, ord('y')), 'l'): 'Copy as Markdown link [name](file://...)',
     ((32, ord('y')), 'v'): 'Paste clipboard to file',
 
     # ── <Space>n  next search ────────────────────────────────────────────────

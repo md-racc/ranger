@@ -112,6 +112,80 @@ class yank_contents(Command):
             self.fm.notify("yank_contents: {}".format(e), bad=True)
 
 
+class copy_rel_path(Command):
+    """:copy_rel_path  (<Space>yr)
+
+    Copy the path(s) of selected files relative to ranger's cwd, one per line.
+    """
+
+    def execute(self):
+        items = _selection(self.fm)
+        if not items:
+            self.fm.notify("Nothing selected", bad=True)
+            return
+        cwd = self.fm.thisdir.path
+        paths = [os.path.relpath(f.path, cwd) for f in items]
+        text = '\n'.join(paths)
+        if not clipboard_copy(self.fm, text):
+            return
+        if len(items) == 1:
+            self.fm.notify("Copied relative: " + text)
+        else:
+            self.fm.notify("Copied {} relative paths".format(len(items)))
+
+
+class copy_git_rel_path(Command):
+    """:copy_git_rel_path  (<Space>yg)
+
+    Copy the path(s) of selected files relative to the git repo root, one per line.
+    """
+
+    def execute(self):
+        items = _selection(self.fm)
+        if not items:
+            self.fm.notify("Nothing selected", bad=True)
+            return
+        result = subprocess.run(
+            ['git', 'rev-parse', '--show-toplevel'],
+            capture_output=True, text=True,
+            cwd=self.fm.thisdir.path,
+        )
+        if result.returncode != 0:
+            self.fm.notify("Not in a git repository", bad=True)
+            return
+        git_root = result.stdout.strip()
+        paths = [os.path.relpath(f.path, git_root) for f in items]
+        text = '\n'.join(paths)
+        if not clipboard_copy(self.fm, text):
+            return
+        if len(items) == 1:
+            self.fm.notify("Copied git-relative: " + text)
+        else:
+            self.fm.notify("Copied {} git-relative paths".format(len(items)))
+
+
+class copy_markdown_link(Command):
+    """:copy_markdown_link  (<Space>yl)
+
+    Copy selected file(s) as Markdown link(s), one per line.
+    """
+
+    def execute(self):
+        items = _selection(self.fm)
+        if not items:
+            self.fm.notify("Nothing selected", bad=True)
+            return
+        links = ['[{}]({})'.format(f.basename, 'file://' + quote(f.path, safe='/'))
+                 for f in items]
+        text = '\n'.join(links)
+        if not clipboard_copy(self.fm, text):
+            return
+        if len(items) == 1:
+            self.fm.notify("Copied link: " + text)
+        else:
+            self.fm.notify("Copied {} markdown links".format(len(items)))
+
+
 class wl_paste_file(Command):
     """:wl_paste_file  (<Space>yv)
 

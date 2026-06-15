@@ -31,3 +31,4 @@ from cmds.security   import *   # hash_show/verify/copy, encrypt/decrypt
 from cmds.network    import *   # lan_serve/file/qr/kill
 from cmds.transform  import *   # image/video/pdf/name ops
 from cmds.open_here  import *   # open_project, spawn_terminal, cd_git_root, dir_diff, drag_out
+from cmds.git        import *   # git_diff, git_discard
