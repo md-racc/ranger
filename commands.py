@@ -34,3 +34,4 @@ from cmds.open_here  import *   # open_project, spawn_terminal, cd_git_root, dir
 from cmds.filter_ext import *   # _TagFilter registration, filter_tag/flat
 from cmds.git        import *   # git_diff, git_discard
 from cmds.mount      import *   # device_mount, device_unmount, iso_mount, device_eject
+from cmds.search     import *   # vim_search (incremental / <C-n> aware)
