@@ -5,7 +5,9 @@ import shlex
 import shutil
 import subprocess
 
-# Canonical base directory for all sshfs mounts (used by cmds/ssh.py).
+# Canonical base directory for all sshfs mounts.
+# Used by cmds/ssh.py (via import) and plugins/ssh_cleanup.py (lazy import
+# inside hook_init, after commands.py has set up sys.path).
 SSH_MOUNT_BASE = '/tmp/ranger-sshfs'
 
 
