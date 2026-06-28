@@ -204,6 +204,13 @@ _KEY_LABELS = {
     ((32, ord('v'), ord('i')), 'c'): 'Convert format',
     ((32, ord('v'), ord('i')), 's'): 'Strip EXIF',
     ((32, ord('v'), ord('i')), 'o'): 'Optimize',
+    ((32, ord('v'), ord('i')), 'a'): 'Stack vertical (append)',
+    ((32, ord('v'), ord('i')), 'A'): 'Stack horizontal (append)',
+    ((32, ord('v'), ord('i')), 'f'): 'Flip vertical',
+    ((32, ord('v'), ord('i')), 'F'): 'Flop horizontal',
+    ((32, ord('v'), ord('i')), 't'): 'Trim whitespace',
+    ((32, ord('v'), ord('i')), 'n'): 'Negate colours',
+    ((32, ord('v'), ord('i')), 'R'): 'Rotate (degrees)',
 
     # ── <Space>vv  video / audio ops ─────────────────────────────────────────
     ((32, ord('v'), ord('v')), 't'): 'Transcode',

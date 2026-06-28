@@ -204,6 +204,157 @@ class image_optimize(Command):
             lossy=False)
 
 
+# ── Image composite / in-place ops  (<Space>vi a/A/f/F/t/n/R/g) ─────────────
+
+def _parse_stack_args(arg_str):
+    """Parse '[width] output.ext' for vstack/hstack.
+
+    Returns (width_str_or_None, output_filename).
+    width is a pixel count that each frame is scaled to before compositing;
+    it keeps aspect ratio (WxN for vstack, Nx for hstack callers decide which).
+    """
+    parts = arg_str.strip().split(None, 1)
+    if len(parts) == 2 and parts[0].isdigit():
+        return parts[0], parts[1]
+    return None, arg_str.strip()
+
+
+class image_vstack(Command):
+    """:image_vstack [width] <output>  (<Space>via)
+
+    Vertically stack selected images (top→bottom) into a new file.
+    Files are composited in sorted (lexicographic) order.
+
+    Optional width: scale every frame to this pixel width (keeping aspect
+    ratio) before stacking.  Strongly recommended for large images — without
+    it the output is the sum of all source pixels.
+
+    Requires: magick (ImageMagick 7).
+    Usage:
+        image_vstack stacked.jpg          full resolution
+        image_vstack 1920 stacked.jpg     scale each frame to 1920 px wide
+    """
+
+    def execute(self):
+        width, out = _parse_stack_args(self.rest(1))
+        if not out:
+            self.fm.notify(
+                "Usage: image_vstack [width] <output.ext>  e.g. 1920 stacked.jpg", bad=True)
+            return
+        if not require_tool(self.fm, 'magick'):
+            return
+        sel = get_selection(self.fm, min_count=2, msg="Select 2+ images to stack")
+        if sel is None:
+            return
+        files = sorted(f.path for f in sel)
+        out_path = unique_dest(os.path.join(self.fm.thisdir.path, out))
+        cmd = ['magick'] + files
+        if width:
+            cmd += ['-resize', '{}x'.format(width)]
+        cmd += ['-append', out_path]
+        note = " (scaled to {}px wide)".format(width) if width else ""
+        _run_jobs(self.fm, 'Stack', [cmd], "Stacked {}{} → {}".format(
+            len(files), note, os.path.basename(out_path)))
+
+
+class image_hstack(Command):
+    """:image_hstack [height] <output>  (<Space>viA)
+
+    Horizontally stack selected images (left→right) into a new file.
+    Files are composited in sorted order.
+
+    Optional height: scale every frame to this pixel height before stacking.
+
+    Requires: magick (ImageMagick 7).
+    Usage:
+        image_hstack row.jpg              full resolution
+        image_hstack 1080 row.jpg         scale each frame to 1080 px tall
+    """
+
+    def execute(self):
+        height, out = _parse_stack_args(self.rest(1))
+        if not out:
+            self.fm.notify(
+                "Usage: image_hstack [height] <output.ext>  e.g. 1080 row.png", bad=True)
+            return
+        if not require_tool(self.fm, 'magick'):
+            return
+        sel = get_selection(self.fm, min_count=2, msg="Select 2+ images to stack")
+        if sel is None:
+            return
+        files = sorted(f.path for f in sel)
+        out_path = unique_dest(os.path.join(self.fm.thisdir.path, out))
+        cmd = ['magick'] + files
+        if height:
+            cmd += ['-resize', 'x{}'.format(height)]
+        cmd += ['+append', out_path]
+        note = " (scaled to {}px tall)".format(height) if height else ""
+        _run_jobs(self.fm, 'Stack', [cmd], "Stacked {}{} → {}".format(
+            len(files), note, os.path.basename(out_path)))
+
+
+class image_flip(Command):
+    """:image_flip  (<Space>vif)
+
+    Flip selected images vertically (upside-down) in-place via mogrify.
+    Requires: mogrify (ImageMagick).
+    """
+
+    def execute(self):
+        _mogrify_inplace(self, ['-flip'], 'Flip')
+
+
+class image_flop(Command):
+    """:image_flop  (<Space>viF)
+
+    Mirror selected images horizontally (left↔right) in-place via mogrify.
+    Requires: mogrify (ImageMagick).
+    """
+
+    def execute(self):
+        _mogrify_inplace(self, ['-flop'], 'Flop')
+
+
+class image_trim(Command):
+    """:image_trim  (<Space>vit)
+
+    Auto-trim uniform borders/whitespace from selected images in-place.
+    Uses mogrify -trim +repage (resets the canvas offset).
+    Requires: mogrify (ImageMagick).
+    """
+
+    def execute(self):
+        _mogrify_inplace(self, ['-trim', '+repage'], 'Trim')
+
+
+class image_negate(Command):
+    """:image_negate  (<Space>vin)
+
+    Invert (negate) pixel colours in selected images in-place via mogrify.
+    Requires: mogrify (ImageMagick).
+    """
+
+    def execute(self):
+        _mogrify_inplace(self, ['-negate'], 'Negate')
+
+
+class image_rotate(Command):
+    """:image_rotate <degrees>  (<Space>viR)
+
+    Rotate selected images by an arbitrary angle in-place via mogrify.
+    Positive = clockwise.  JPEGs are re-encoded (lossy) — you'll be asked.
+    Requires: mogrify (ImageMagick).
+    Usage:  image_rotate 90
+    """
+
+    def execute(self):
+        deg = self.rest(1).strip()
+        if not deg:
+            self.fm.notify("Usage: image_rotate <degrees>  e.g. 90  180  -45", bad=True)
+            return
+        _mogrify_inplace(self, ['-rotate', deg], 'Rotate {}°'.format(deg))
+
+
 # ── Video / audio ops  (<Space>vv*) ──────────────────────────────────────────
 
 class video_transcode(Command):
