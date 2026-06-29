@@ -249,6 +249,12 @@ _KEY_LABELS = {
     ((32, ord('n')), 'c'): 'Next by ctime',
     ((32, ord('n')), 'm'): 'Next by mtime',
     ((32, ord('n')), 'a'): 'Next by atime',
+    ((32, ord('n')), 'e'): 'First of ext (pick)',
+    ((32, ord('n')), 'E'): 'Last of ext (pick)',
+    ((32, ord('n')), 'g'): 'Skip to next type group',
+    ((32, ord('n')), 'G'): 'Skip to prev type group',
+    ((32, ord('n')), 'x'): 'Next same ext',
+    ((32, ord('n')), 'X'): 'Prev same ext',
 
     # ── .  filter stack ──────────────────────────────────────────────────────
     ((ord('.'),), 'd'): 'Dirs',

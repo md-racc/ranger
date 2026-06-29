@@ -166,6 +166,41 @@ class mkcd(Command):
         self.fm.open_console('')
 
 
+class jump_type(Command):
+    """:jump_type <ext> [first|last]
+
+    Jump to the first or last file with the given extension in the current
+    directory. Defaults to first. Tab-completes available extensions.
+
+    Examples:
+      :jump_type mp4
+      :jump_type mp4 last
+    """
+
+    def execute(self):
+        ext = self.arg(1).lstrip('.').lower()
+        direction = self.arg(2) or 'first'
+        if not ext:
+            self.fm.notify("Usage: jump_type <ext> [first|last]", bad=True)
+            return
+        files = [f for f in self.fm.thisdir.files
+                 if f.basename.lower().endswith('.' + ext)]
+        if not files:
+            self.fm.notify("No .{} files found".format(ext), bad=True)
+            return
+        target = files[-1] if direction == 'last' else files[0]
+        self.fm.select_file(target.path)
+
+    def tab(self, tabnum):
+        exts = set()
+        for f in self.fm.thisdir.files:
+            _, e = os.path.splitext(f.basename)
+            if e:
+                exts.add(e.lstrip('.').lower())
+        partial = self.arg(1).lstrip('.')
+        return [self.start(1) + e for e in sorted(exts) if e.startswith(partial)]
+
+
 class z(Command):
     """:z <query>
 
@@ -441,3 +476,115 @@ class rg_content_search(Command):
                     shlex.quote(pattern), shlex.quote(root), pager
                 )
             )
+
+
+# ── Extension / type navigation  (<Space>ne/nE/ng/nG/nx/nX) ─────────────────
+#
+# <Space>ne  — opens console pre-filled with "jump_type " (tab-completes exts)
+#              bound directly in rc.conf as: console jump_type%space
+# <Space>nE  — nav_ext_last: opens console pre-filled "jump_type  last" with
+#              the cursor positioned between "jump_type " and " last" so the
+#              user just types the extension and presses Enter.
+
+
+class nav_ext_last(Command):
+    """:nav_ext_last  (<Space>nE)
+
+    Open the ranger console pre-filled with "jump_type  last", cursor
+    positioned after "jump_type " so the user types the extension and
+    presses Enter.  Tab-completion works as normal (via jump_type.tab()).
+    """
+
+    def execute(self):
+        # "jump_type " is 10 chars; cursor at 10 lands between the two spaces
+        # so typing an extension gives "jump_type <ext> last".
+        self.fm.open_console('jump_type  last', position=10)
+
+
+class nav_group_next(Command):
+    """:nav_group_next  (<Space>ng)
+
+    Jump to the first file of the NEXT extension group in the listing.
+    No fzf — designed for rapid group-hopping when sorted by type.
+    """
+
+    def execute(self):
+        files = self.fm.thisdir.files or []
+        ptr   = self.fm.thisdir.pointer
+        if not files or ptr < 0:
+            return
+        cur_ext = (files[ptr].extension or '').lower()
+        i = ptr + 1
+        # Skip past remaining files of the current extension.
+        while i < len(files) and (files[i].extension or '').lower() == cur_ext:
+            i += 1
+        if i < len(files):
+            self.fm.select_file(files[i].path)
+
+
+class nav_group_prev(Command):
+    """:nav_group_prev  (<Space>nG)
+
+    Jump to the first file of the PREVIOUS extension group.
+    No fzf — designed for rapid group-hopping when sorted by type.
+    """
+
+    def execute(self):
+        files = self.fm.thisdir.files or []
+        ptr   = self.fm.thisdir.pointer
+        if not files or ptr <= 0:
+            return
+        cur_ext = (files[ptr].extension or '').lower()
+        i = ptr - 1
+        # Step back out of the current group (handles being mid-group).
+        while i >= 0 and (files[i].extension or '').lower() == cur_ext:
+            i -= 1
+        if i < 0:
+            return
+        # Now i is the last file of the previous group.  Walk back to its start.
+        prev_ext = (files[i].extension or '').lower()
+        while i > 0 and (files[i - 1].extension or '').lower() == prev_ext:
+            i -= 1
+        self.fm.select_file(files[i].path)
+
+
+class nav_ext_next(Command):
+    """:nav_ext_next  (<Space>nx)
+
+    Jump to the next file in the current listing that shares the same
+    extension as the currently highlighted file.  Wraps around.
+    """
+
+    def execute(self):
+        files = self.fm.thisdir.files or []
+        ptr   = self.fm.thisdir.pointer
+        if not files or ptr < 0:
+            return
+        ext = (files[ptr].extension or '').lower()
+        n = len(files)
+        for step in range(1, n):
+            f = files[(ptr + step) % n]
+            if (f.extension or '').lower() == ext:
+                self.fm.select_file(f.path)
+                return
+
+
+class nav_ext_prev(Command):
+    """:nav_ext_prev  (<Space>nX)
+
+    Jump to the previous file in the current listing that shares the same
+    extension as the currently highlighted file.  Wraps around.
+    """
+
+    def execute(self):
+        files = self.fm.thisdir.files or []
+        ptr   = self.fm.thisdir.pointer
+        if not files or ptr < 0:
+            return
+        ext = (files[ptr].extension or '').lower()
+        n = len(files)
+        for step in range(1, n):
+            f = files[(ptr - step) % n]
+            if (f.extension or '').lower() == ext:
+                self.fm.select_file(f.path)
+                return
