@@ -53,6 +53,10 @@ _SUBMAP_LABELS = {
         'e': 'Extract',
         'c': 'Compress',
     },
+    # <Space>ac — 'i' submap (compress-each) collapses when hint count exceeds threshold.
+    (32, ord('a'), ord('c')): {
+        'i': 'Each (individual)',
+    },
     # <Space>v — four domain groups, each with multiple children.
     (32, ord('v')): {
         'i': 'Image',
@@ -131,6 +135,7 @@ _KEY_LABELS = {
     ((32, ord('a'), ord('e')), 'f'): 'Flatten extract',
     ((32, ord('a'), ord('e')), 'D'): 'Extract to...',
     ((32, ord('a'), ord('e')), 'o'): 'Extract & open',
+    ((32, ord('a'), ord('e')), 'p'): 'Pick files',
 
     # ── <Space>ac  compress (aggregate) ─────────────────────────────────────
     ((32, ord('a'), ord('c')), 'z'): '.tar.gz',
@@ -139,6 +144,14 @@ _KEY_LABELS = {
     ((32, ord('a'), ord('c')), 'b'): '.tar.bz2',
     ((32, ord('a'), ord('c')), 'p'): '.zip',
     ((32, ord('a'), ord('c')), '7'): '.7z',
+
+    # ── <Space>aci  compress each (individual) ───────────────────────────────
+    ((32, ord('a'), ord('c'), ord('i')), 'z'): '.tar.gz each',
+    ((32, ord('a'), ord('c'), ord('i')), 'x'): '.tar.xz each',
+    ((32, ord('a'), ord('c'), ord('i')), 'Z'): '.tar.zst each',
+    ((32, ord('a'), ord('c'), ord('i')), 'b'): '.tar.bz2 each',
+    ((32, ord('a'), ord('c'), ord('i')), 'p'): '.zip each',
+    ((32, ord('a'), ord('c'), ord('i')), '7'): '.7z each',
 
     # ── <Space>t  transfer ───────────────────────────────────────────────────
     ((32, ord('t')), 'm'): 'Move to...',

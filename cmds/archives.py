@@ -413,6 +413,167 @@ class extract_open(Command):
                         after=lambda ui, out: ui(fm.cd, out))
 
 
+def _pick_entries(arc_entries, rel_paths):
+    """Archive entries (in archive order) matching the picked paths; a picked
+    directory pulls in everything under it."""
+    def _norm(p):
+        while p.startswith('./'):
+            p = p[2:]
+        return p.strip('/')
+
+    wanted = [_norm(r) for r in rel_paths if _norm(r) and not r.startswith('..')]
+    out = []
+    for entry in arc_entries:
+        en = _norm(entry)
+        if en and any(en == w or en.startswith(w + '/') for w in wanted):
+            out.append(entry)
+    return out
+
+
+class extract_pick_done(Command):
+    """:extract_pick_done <outfile>   (internal — bound to q inside extract_pick)
+
+    Write every marked path (in any directory visited) to <outfile>, one per
+    line, then quit this (nested) ranger.
+    """
+
+    def execute(self):
+        out = self.rest(1)
+        paths = []
+        for d in list(getattr(self.fm, 'directories', {}).values()):
+            paths.extend(f.path for f in (getattr(d, 'marked_items', None) or []))
+        try:
+            with open(out, 'w') as fh:
+                fh.write('\n'.join(dict.fromkeys(paths)))
+        except OSError as ex:
+            self.fm.notify("extract_pick: {}".format(ex), bad=True)
+            return
+        self.fm.execute_console('quitall!')
+
+
+class extract_pick(Command):
+    """:extract_pick  (<Space>aep)
+
+    Mount the archive under the cursor via archivemount and open a nested
+    ranger on it.  Mark files/dirs with ',' (or 'v' for all), in as many
+    folders as you like, then press 'q': the marked entries are extracted
+    into cwd with their archive paths (existing files are kept).  'q' with
+    nothing marked extracts nothing.
+
+    Falls back to a flat fzf list (TAB multi-select) when archivemount is
+    not installed.
+    """
+
+    def execute(self):
+        f = self.fm.thisfile
+        if f is None:
+            self.fm.notify("No file selected", bad=True)
+            return
+
+        if not shutil.which('archivemount'):
+            self._fzf_fallback(f)
+            return
+
+        cwd = self.fm.thisdir.path
+        arc = f.path
+        mount = tempfile.mkdtemp(prefix='ranger-arc-')
+        fd, sel = tempfile.mkstemp(suffix='.sel')
+        os.close(fd)
+
+        try:
+            result = subprocess.run(['archivemount', arc, mount],
+                                    capture_output=True, text=True)
+            if result.returncode != 0:
+                err = (result.stderr or result.stdout).strip()
+                self.fm.notify('archivemount failed: {}'.format(err), bad=True)
+                return
+
+            # same config as this ranger: extract_pick_done lives in it
+            import ranger
+            confdir = getattr(getattr(ranger, 'args', None), 'confdir', None)
+            argv = ['ranger'] + (['--confdir=' + confdir] if confdir else [])
+            self.fm.run(argv + ['--cmd=map q extract_pick_done ' + sel, mount])
+
+            try:
+                with open(sel) as fh:
+                    abs_paths = [ln for ln in fh.read().splitlines() if ln]
+            except OSError:
+                abs_paths = []
+            if not abs_paths:
+                self.fm.notify("extract_pick: nothing marked")
+                return
+
+            arc_entries = subprocess.run(
+                ['bsdtar', '-tf', arc], capture_output=True, text=True,
+            ).stdout.splitlines()
+            ordered = _pick_entries(
+                arc_entries, [os.path.relpath(p, mount) for p in abs_paths])
+            if not ordered:
+                self.fm.notify('No matching archive entries found', bad=True)
+                return
+            self._extract(arc, cwd, ordered)
+        finally:
+            for umount in ('fusermount3', 'fusermount'):
+                try:
+                    if subprocess.run([umount, '-u', mount],
+                                      capture_output=True).returncode == 0:
+                        break
+                except OSError:
+                    continue
+            try:
+                os.rmdir(mount)
+            except OSError:
+                pass
+            try:
+                os.unlink(sel)
+            except OSError:
+                pass
+
+    def _extract(self, arc, cwd, entries):
+        # -k: never overwrite; -w: keep the listing on screen until a key.
+        self.fm.run(['bsdtar', '-xkvf', arc, '-C', cwd, '--'] + entries, flags='w')
+        self.fm.reload_cwd()
+
+    def _fzf_fallback(self, f):
+        result = subprocess.run(
+            ['bsdtar', '-tf', f.path],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            self.fm.notify("Cannot list archive", bad=True)
+            return
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.in', delete=False) as tf:
+            tf.write(result.stdout)
+            in_file = tf.name
+        fd, out_file = tempfile.mkstemp(suffix='.out')
+        os.close(fd)
+        try:
+            self.fm.run(
+                'fzf --multi --border --ansi --header={} < {} > {}'.format(
+                    shlex.quote('TAB: select multiple   ENTER: extract to cwd'),
+                    shlex.quote(in_file),
+                    shlex.quote(out_file),
+                )
+            )
+            try:
+                with open(out_file) as fh:
+                    picked = [ln for ln in fh.read().splitlines() if ln]
+            except OSError:
+                picked = []
+        finally:
+            for tmp in [in_file, out_file]:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+
+        if not picked:
+            return
+        self._extract(f.path, self.fm.thisdir.path,
+                      _pick_entries(result.stdout.splitlines(), picked))
+
+
 class extract_cancel(Command):
     """:extract_cancel  (<Space>ak)
 
@@ -476,6 +637,7 @@ class archive_list(Command):
     """:archive_list  (<Space>al)
 
     Browse archive contents in fzf (searchable, read-only).
+    Use <Space>aep to extract specific entries interactively.
     """
 
     def execute(self):
@@ -501,7 +663,7 @@ class archive_list(Command):
         try:
             self.fm.run(
                 'fzf --border --no-multi --ansi --header={} < {} > {}'.format(
-                    shlex.quote(f.basename),
+                    shlex.quote('{} — <Space>aep to extract entries'.format(f.basename)),
                     shlex.quote(in_file),
                     shlex.quote(out_file),
                 )
@@ -585,3 +747,82 @@ class compress(Command):
         self.fm.notify("Compressing {} file(s) → {}".format(len(files), archive_name))
         self.fm.run(' '.join(shlex.quote(c) for c in cmd))
         self.fm.reload_cwd()
+
+
+class compress_each(Command):
+    """:compress_each <fmt>  (<Space>aci*)
+
+    Compress each selected file/directory into its own archive in cwd.
+    fmt: gz | xz | zst | bz2 | zip | 7z
+    Runs in a background thread; notifies on each completion.
+    """
+
+    _FMT_EXT = {
+        'gz':  '.tar.gz',
+        'xz':  '.tar.xz',
+        'zst': '.tar.zst',
+        'bz2': '.tar.bz2',
+        'zip': '.zip',
+        '7z':  '.7z',
+    }
+
+    def execute(self):
+        fmt = self.arg(1)
+        ext = self._FMT_EXT.get(fmt)
+        if not ext:
+            self.fm.notify(
+                "Unknown format: {}  (gz/xz/zst/bz2/zip/7z)".format(fmt), bad=True)
+            return
+        selection = self.fm.thistab.get_selection()
+        if not selection:
+            return
+
+        cwd = self.fm.thisdir.path
+        fm  = self.fm
+
+        items = []
+        taken = set()   # a.txt and a.md would both plan a.tar.gz
+        for f in selection:
+            stem = f.basename if f.is_directory else os.path.splitext(f.basename)[0] or f.basename
+            out = os.path.join(cwd, stem + ext)
+            n = 1
+            while os.path.lexists(out) or out in taken:
+                out = os.path.join(cwd, '{}_{}{}'.format(stem, n, ext))
+                n += 1
+            taken.add(out)
+            items.append((f.path, out, f.basename))
+
+        def _run_all(ui):
+            for src, out, label in items:
+                parent = os.path.dirname(src)
+                base   = os.path.basename(src)
+                try:
+                    if fmt == 'gz':
+                        cmd = ['bsdtar', '-czf', out, '-C', parent, '--', base]
+                    elif fmt == 'xz':
+                        cmd = ['bsdtar', '-cJf', out, '-C', parent, '--', base]
+                    elif fmt == 'bz2':
+                        cmd = ['bsdtar', '-cjf', out, '-C', parent, '--', base]
+                    elif fmt == 'zst':
+                        cmd = ['bsdtar', '--zstd', '-caf', out, '-C', parent, '--', base]
+                    elif fmt == 'zip':
+                        cmd = ['zip', '-r', out, '--', base]
+                    else:  # '7z'
+                        cmd = ['7z', 'a', out, '--', src]
+                    run_cwd = parent if fmt == 'zip' else None
+                    result = subprocess.run(cmd, capture_output=True, text=True, cwd=run_cwd)
+                    if result.returncode == 0:
+                        ui(fm.notify, 'Packed: {} → {}'.format(label, os.path.basename(out)))
+                    else:
+                        err = (result.stderr or result.stdout).strip()
+                        ui(fm.notify, 'Failed: {} — {}'.format(label, err), bad=True)
+                except Exception as e:
+                    ui(fm.notify, 'compress_each: {}'.format(e), bad=True)
+
+        def _done(_result, error):
+            if error is not None:
+                fm.notify('compress_each: {}'.format(error), bad=True)
+            fm.reload_cwd()
+
+        self.fm.notify('Compressing {} item(s) individually…'.format(len(items)))
+        run_bg(fm, 'Compressing', _run_all, _done)
