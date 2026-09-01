@@ -257,3 +257,169 @@ class decrypt_file(Command):
 
         self.fm.run(cmd)
         self.fm.reload_cwd()
+
+
+class veracrypt_mount(Command):
+    """:veracrypt_mount [mountpoint]  (<Space>em)
+
+    Mount a VeraCrypt container (.hc / .vc) interactively.
+    Without argument: creates $XDG_RUNTIME_DIR/vc/<name>/ as mountpoint.
+    With argument: uses the supplied path (created if needed).
+    Navigates to the mountpoint on success.
+    """
+
+    _CONTAINER_EXTS = {'.hc', '.vc', '.tc'}
+
+    def execute(self):
+        if not shutil.which('veracrypt'):
+            self.fm.notify("veracrypt not installed", bad=True)
+            return
+
+        f = self.fm.thisfile
+        if f is None or not os.path.isfile(f.path):
+            self.fm.notify("Select a VeraCrypt container file (.hc)", bad=True)
+            return
+
+        container = f.path
+        ext = os.path.splitext(container)[1].lower()
+        if ext not in self._CONTAINER_EXTS:
+            self.fm.notify(
+                "Not a recognised container extension ({})"
+                " — select a .hc/.vc/.tc file".format(ext),
+                bad=True,
+            )
+            return
+
+        arg = self.rest(1).strip()
+        if arg:
+            mountpoint = os.path.expanduser(arg)
+        else:
+            base = os.path.splitext(os.path.basename(container))[0]
+            runtime = os.environ.get('XDG_RUNTIME_DIR', '/tmp')
+            mountpoint = os.path.join(runtime, 'vc', base)
+
+        try:
+            os.makedirs(mountpoint, mode=0o700, exist_ok=True)
+        except OSError as exc:
+            self.fm.notify("Cannot create mountpoint: " + str(exc), bad=True)
+            return
+
+        # --pim=0 -k "" --protect-hidden=no skips the PIM / keyfile /
+        # hidden-volume prompts so only the password is asked interactively.
+        self.fm.run(
+            'veracrypt --text --pim=0 -k "" --protect-hidden=no --mount {} {}'.format(
+                shlex.quote(container), shlex.quote(mountpoint)
+            )
+        )
+
+        if os.path.ismount(mountpoint):
+            self.fm.cd(mountpoint)
+        else:
+            self.fm.notify("Mount failed — see veracrypt output above", bad=True)
+            try:
+                os.rmdir(mountpoint)
+            except OSError:
+                pass
+
+    def tab(self, tabnum):
+        return self._tab_directory_content()
+
+
+class veracrypt_umount(Command):
+    """:veracrypt_umount  (<Space>eu)
+
+    List mounted VeraCrypt volumes via fzf and dismount the chosen one.
+    """
+
+    _SLOT_RE = re.compile(r'^(\d+):')
+
+    def execute(self):
+        if not shutil.which('veracrypt'):
+            self.fm.notify("veracrypt not installed", bad=True)
+            return
+
+        result = subprocess.run(
+            ['veracrypt', '--text', '--list'],
+            capture_output=True, text=True,
+        )
+        raw = result.stdout.strip()
+        if result.returncode != 0 or not raw:
+            msg = result.stderr.strip() or raw
+            if not msg or 'No volumes' in msg:
+                self.fm.notify("No VeraCrypt volumes mounted")
+            else:
+                self.fm.notify("veracrypt --list: " + msg, bad=True)
+            return
+
+        lines = [l for l in raw.splitlines() if self._SLOT_RE.match(l)]
+        if not lines:
+            self.fm.notify("No VeraCrypt volumes mounted")
+            return
+
+        # Format: "1: /path/volume.hc /dev/mapper/veracryptX /mountpoint"
+        entries = []
+        for line in lines:
+            m = self._SLOT_RE.match(line)
+            slot = m.group(1)
+            parts = line.split()
+            vol_name = os.path.basename(parts[1]) if len(parts) > 1 else '?'
+            mountpoint = parts[-1] if len(parts) >= 4 else None
+            display = 'slot {:<3} {}  →  {}'.format(
+                slot, vol_name, mountpoint or '?'
+            )
+            entries.append((display, slot, mountpoint))
+
+        fd, in_file = tempfile.mkstemp(suffix='.in')
+        os.close(fd)
+        fd, out_file = tempfile.mkstemp(suffix='.out')
+        os.close(fd)
+        try:
+            with open(in_file, 'w') as fh:
+                fh.write('\n'.join(d for d, _, _ in entries))
+            self.fm.run(
+                'fzf --border --prompt="Dismount> " '
+                '--header="Select VeraCrypt volume to dismount" '
+                '< {} > {}'.format(shlex.quote(in_file), shlex.quote(out_file))
+            )
+            try:
+                with open(out_file) as fh:
+                    selected = fh.read().strip()
+            except OSError:
+                selected = ''
+        finally:
+            for tmp in (in_file, out_file):
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+
+        if not selected:
+            return
+
+        slot = mountpoint = None
+        for display, s, mp in entries:
+            if display == selected:
+                slot, mountpoint = s, mp
+                break
+        if slot is None:
+            return
+
+        result = subprocess.run(
+            ['veracrypt', '--text', '--dismount', '--slot=' + slot],
+            capture_output=True, text=True,
+        )
+        if result.returncode == 0:
+            self.fm.notify("Dismounted slot " + slot)
+            if mountpoint:
+                runtime = os.environ.get('XDG_RUNTIME_DIR', '/tmp')
+                vc_dir = os.path.join(runtime, 'vc')
+                if mountpoint.startswith(vc_dir + os.sep):
+                    try:
+                        os.rmdir(mountpoint)
+                    except OSError:
+                        pass
+        else:
+            self.fm.notify(
+                "dismount failed: " + (result.stderr.strip() or result.stdout.strip()),
+                bad=True,
+            )

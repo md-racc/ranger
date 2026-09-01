@@ -508,9 +508,18 @@ Directory previews automatically show `git log --oneline --graph` for git repos.
 | `<Space>ss` | Console: `ssh_mount [user@]host[:/path]` — mount remote via SSHFS, open in new tab |
 | `<Space>sS` | Open interactive SSH shell to current mount's host |
 | `<Space>su` | Unmount current SSHFS tab and close it |
+| `<Space>sc` | Copy selection via `ssh host cat` — fallback when paste fails on an SSHFS-mounted file |
 
 All SSHFS mounts are automatically cleaned up when ranger exits.
 Tab-completes from `~/.ssh/config` Host entries.
+
+`<Space>sc` bypasses the FUSE mount entirely by piping the file through a plain
+`ssh host cat` command. Use it when regular paste (`pp`) fails on a file inside
+an SSHFS mount with an error like "Operation not permitted" — this happens when
+the remote sshd chroots its SFTP subsystem (what sshfs uses) more narrowly than
+an interactive shell, and the file is a symlink pointing outside that chroot.
+Directories in the selection are skipped; destination defaults to the current
+local directory.
 
 ---
 
@@ -580,9 +589,17 @@ Uses `age` (preferred, modern) with a passphrase, falling back to `gpg -c` if ag
 |-----|--------|
 | `<Space>ee` | Encrypt selection — creates `<file>.age` (or `.gpg`) |
 | `<Space>ed` | Decrypt current file — auto-detects `.age` vs `.gpg` extension |
+| `<Space>em` | Mount VeraCrypt container (`.hc`) — type mountpoint or Enter for temp |
+| `<Space>eu` | Dismount a VeraCrypt volume (fzf picker) |
 
 `<Space>ee` / `<Space>ed` hand the terminal to the encryption tool for interactive passphrase entry.
 Output file is placed alongside the source file.
+
+`<Space>em` works on the currently selected `.hc`/`.vc`/`.tc` file.  Type a path in
+the console to use it as the mountpoint; press Enter with no input to auto-create
+`$XDG_RUNTIME_DIR/vc/<name>`.  Ranger navigates to the mountpoint on success.
+`<Space>eu` lists all mounted VeraCrypt slots via fzf and dismounts the chosen one;
+auto-created temp dirs are removed after dismount.
 
 ---
 
@@ -898,6 +915,7 @@ Opened with `w`. Shows running background tasks.
 | `:ssh_mount <host>` | Mount remote via SSHFS |
 | `:ssh_shell` | Open SSH shell to current mount's host |
 | `:ssh_unmount` | Unmount current SSHFS tab |
+| `:ssh_copy [dest]` | Copy selection out of an SSHFS mount via `ssh host cat` (chroot fallback) |
 | `:smart_flatten` | Toggle visual flat view with files-only filter |
 | `:flatten_write [confirm]` | Physical flatten selected dirs into cwd |
 | `:preview_toggle` | Toggle visual preview mode |
@@ -912,6 +930,8 @@ Opened with `w`. Shows running background tasks.
 | `:hash_copy` | Copy SHA-256 of current file to clipboard |
 | `:encrypt_file` | Encrypt selection with age / gpg |
 | `:decrypt_file` | Decrypt `.age` / `.gpg` file |
+| `:veracrypt_mount [path]` | Mount `.hc` container; omit path for auto temp dir |
+| `:veracrypt_umount` | Dismount VeraCrypt volume via fzf slot picker |
 | `:wl_paste_file` | Paste clipboard content as file in cwd |
 | `:wormhole_send` | Send selection via croc / magic-wormhole |
 | `:wormhole_recv [code]` | Receive files via croc / wormhole into cwd |

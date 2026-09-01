@@ -95,6 +95,8 @@ _KEY_LABELS = {
     # ── <Space>e  encrypt / decrypt / veracrypt ──────────────────────────────
     ((32, ord('e')), 'e'): 'Encrypt (age / gpg)',
     ((32, ord('e')), 'd'): 'Decrypt (.age / .gpg)',
+    ((32, ord('e')), 'm'): 'Mount VeraCrypt .hc (Enter=tmp)',
+    ((32, ord('e')), 'u'): 'Dismount VeraCrypt volume',
 
     # ── <Space>f  find / fzf ─────────────────────────────────────────────────
     ((32, ord('f')), 'f'): 'Fuzzy find (cwd)',
@@ -171,6 +173,7 @@ _KEY_LABELS = {
     ((32, ord('s')), 's'): 'Mount SSH',
     ((32, ord('s')), 'S'): 'Shell via SSH',
     ((32, ord('s')), 'u'): 'Unmount SSH',
+    ((32, ord('s')), 'c'): 'Copy via ssh (chroot fallback)',
 
     # ── <Space>m  mounts ─────────────────────────────────────────────────────
     ((32, ord('m')), 'm'): 'Mount block device (udisksctl)',
