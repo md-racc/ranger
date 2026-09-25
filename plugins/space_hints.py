@@ -129,6 +129,7 @@ _KEY_LABELS = {
     ((32, ord('a')), 'l'): 'List archive',
     ((32, ord('a')), 't'): 'Test archive',
     ((32, ord('a')), 'k'): 'Cancel extract',
+    ((32, ord('a')), 'u'): 'Zip & upload (picker)',
 
     # ── <Space>ae  extract ───────────────────────────────────────────────────
     ((32, ord('a'), ord('e')), 'd'): 'Extract',

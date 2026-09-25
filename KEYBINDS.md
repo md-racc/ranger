@@ -261,6 +261,7 @@ Each compress key opens the console pre-filled with `:compress <stem>.<ext>` rea
 | `<Space>al` | List archive contents with sizes in pager |
 | `<Space>at` | Test archive integrity (pv progress, prints PASSED/FAILED) |
 | `<Space>ak` | Cancel all active background extractions |
+| `<Space>au` | **File-picker dialog only:** zip the marked items (or highlighted one) into a private `/tmp/ranger-upload-XXXX/` and send that one archive. Prompts for the name |
 
 Extraction never overwrites: entries that already exist are kept (and counted), and
 subdir extracts get a fresh `stem/` (`stem_1/`, …) instead of merging. A bare

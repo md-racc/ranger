@@ -22,6 +22,7 @@ from cmds.nav        import *   # fzf/zoxide/recent nav, mkcd, flatten, rg, ext 
 from cmds.trash      import *   # trash / undo / list / restore / empty
 from cmds.clipboard  import *   # copy_path/name/dir, yank_contents, wl_paste
 from cmds.archives   import *   # extract*, compress*, archive_list/test
+from cmds.picker     import *   # xdg file-picker: enter_or_pick, pick_selection, pick_archive
 from cmds.files      import *   # rename_ext, diff, dedup
 from cmds.transfer   import *   # moveto, copyto, rsync_to, wormhole send/recv
 from cmds.ssh        import *   # sshfs mount/shell/unmount + quit/quitall override
