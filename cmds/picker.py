@@ -383,8 +383,8 @@ class enter_or_pick(Command):
              folders are entered with l, files replaced with l
       multi  folder → enter it (always, even with marks);
              file → send marks + selection + this file (folders flattened)
-      open   like `move right=1` (folder → enter; file → picked through
-             ranger's --choosefile)
+      open   like `move right=1` (folder → enter; file → picked, see
+             plugins/picker_mode.py)
     Outside a picker: plain `move right=1`.
     """
 
