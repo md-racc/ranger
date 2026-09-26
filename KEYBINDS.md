@@ -6,6 +6,7 @@
 
 ## Table of Contents
 
+- [File Picker (portal dialogs)](#file-picker-portal-dialogs)
 - [Navigation](#navigation)
 - [Selection & Marking](#selection--marking)
 - [File Operations](#file-operations)
@@ -45,12 +46,44 @@
 
 ---
 
+## File Picker (portal dialogs)
+
+Apps' file dialogs open ranger (xdg-desktop-portal-termfilechooser → a custom
+wrapper script that exports RANGER_PICKER*). A banner in the
+title bar, right after `user@host`, shows the mode. **Navigate with
+`hjkl`/zoxide/fzf, mark with `,`, finish with `⏎`, cancel with `q`.**
+
+| Mode (banner) | `⏎` does |
+|---|---|
+| `OPEN` | File → pick it · folder → enter |
+| `OPEN MULTI` | Folder → **always** enter · file → send the marks (marked folders flattened, hidden inside skipped) plus that file. Asks **y/N** when marked folders flatten into more than 20 files |
+| `PICK FOLDER` | Highlighted folder → pick it · empty folder → pick it · `h⏎` → pick the folder you're in |
+| `SAVE ▸ name` | **Saves in the folder you're in**, wherever the cursor is: opens `:pick_save <name>` prefilled, `⏎` again saves. Taken names become `name (1).ext` |
+
+| Key | Action |
+|---|---|
+| `q` / `ZQ` | Cancel the dialog (every mode). With 2+ tabs open `q` closes a tab — the banner then says `Q cancel` |
+| `<C-l>` | Type a location (tab-completes). Folder → cd (in a folder dialog: picks it) · file → pick / save target. Outside a picker: redraw |
+| `<Space>fR` | Recent files (GTK `recently-used.xbel`) |
+| `<Space>au` | Zip the selection into a private `/tmp/ranger-upload-XXXX/` and send the archive |
+| `,` · `v` · `V` · `uv` | Mark (cursor stays; `j` to move on) · invert all · visual range · clear marks |
+| `gD` | Jump to `~/Downloads` |
+
+In SAVE mode `l`/`→` on a folder enters it and on a
+file opens the save prompt for **replacing** that file (asks **Overwrite? y/N**) —
+no key saves or overwrites without the prompt. In MULTI mode `l` on a file sends like `⏎`; in PICK FOLDER
+mode `l` on a file does nothing (no app is launched from a folder dialog). Narrow
+windows shorten the banner but always keep the mode and `⏎ … · q cancel`. Note: `pick_save` and `pick_location` take paths literally
+(ranger `%` macros like `%d` are not expanded).
+
+---
+
 ## Navigation
 
 | Key | Action |
 |-----|--------|
 | `h` / `←` | Go up one directory |
-| `l` / `→` / `Enter` | Enter directory / open file |
+| `l` / `→` / `Enter` | Enter directory / open file. In a file-picker dialog `Enter` is the finish key — see [File Picker](#file-picker-portal-dialogs) |
 | `j` / `↓` | Move down |
 | `k` / `↑` | Move up |
 | `gg` / `Home` | Jump to top |
