@@ -109,6 +109,67 @@ class fzf_history(Command):
                     pass
 
 
+def read_recent(xbel_path):
+    """Existing local files from a GTK recently-used.xbel, newest first."""
+    import xml.etree.ElementTree as ET
+    from urllib.parse import unquote, urlparse
+    try:
+        root = ET.parse(xbel_path).getroot()
+    except (OSError, ET.ParseError):
+        return []
+    entries = []
+    for bookmark in root.iter('bookmark'):
+        href = bookmark.get('href', '')
+        if href.startswith('file://'):
+            stamp = bookmark.get('modified') or bookmark.get('added') or ''
+            entries.append((stamp, unquote(urlparse(href).path)))
+    entries.sort(reverse=True)
+    return [p for p in dict.fromkeys(p for _, p in entries) if os.path.isfile(p)]
+
+
+class recent_files(Command):
+    """:recent_files
+
+    fzf over recently used files (GTK's recently-used.xbel, newest first) and
+    jump to the chosen one. In a folder picker, jumps to its folder.
+    """
+
+    def execute(self):
+        from cmds.picker import picker_mode, select_folder
+        data_home = os.environ.get('XDG_DATA_HOME') or os.path.expanduser('~/.local/share')
+        files = read_recent(os.path.join(data_home, 'recently-used.xbel'))
+        if not files:
+            self.fm.notify("No recent files", bad=True)
+            return
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.in', delete=False) as tf:
+            tf.write('\n'.join(files))
+            in_file = tf.name
+        fd, out_file = tempfile.mkstemp(suffix='.out')
+        os.close(fd)
+        try:
+            self.fm.run('fzf --border --no-sort < {} > {}'.format(
+                shlex.quote(in_file), shlex.quote(out_file),
+            ))
+            try:
+                with open(out_file, errors='surrogateescape') as f:
+                    selected = f.read().strip()
+            except OSError:
+                selected = ''
+            if selected:
+                if picker_mode() == 'dir':
+                    # Leave the cursor ON the folder so the next <CR> picks it
+                    # — even if it's hidden or otherwise filtered out.
+                    select_folder(self.fm, os.path.dirname(selected))
+                else:
+                    self.fm.select_file(selected)
+        finally:
+            for tmp in [in_file, out_file]:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+
+
 class mkcd(Command):
     """:mkcd <dirname>
 

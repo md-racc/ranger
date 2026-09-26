@@ -102,6 +102,7 @@ _KEY_LABELS = {
     ((32, ord('f')), 'f'): 'Fuzzy find (cwd)',
     ((32, ord('f')), 'h'): 'Fuzzy find (home)',
     ((32, ord('f')), 'r'): 'Recent dirs',
+    ((32, ord('f')), 'R'): 'Recent files (GTK)',
     ((32, ord('f')), 'z'): 'Zoxide jump',
     ((32, ord('f')), '/'): 'Find',
     ((32, ord('f')), 't'): 'Travel',

@@ -322,6 +322,7 @@ subdir extracts get a fresh `stem/` (`stem_1/`, …) instead of merging. A bare
 | `<Space>ff` | FZF search from **current directory** (fd) |
 | `<Space>fh` | FZF search from **$HOME** |
 | `<Space>fr` | FZF over **cd history** (recent dirs) |
+| `<Space>fR` | FZF over **recent files** (GTK `recently-used.xbel`) → jump to it |
 | `<Space>fz` | Console: `z <query>` — zoxide jump (tab-completes) |
 | `<Space>f/` | Quick find (navigate as you type) |
 | `<Space>ft` | Travel mode: incremental filter + navigate |
