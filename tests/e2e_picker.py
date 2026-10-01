@@ -211,6 +211,30 @@ class PickerE2E(unittest.TestCase):
         self.wait_exit()
         self.assertEqual(self.result(), [])
 
+    def test_esc_cancels_every_mode(self):
+        self.write(self.p('one.txt'))
+        os.mkdir(self.p('a'))
+        for args in ((0, 0, 0), (1, 0, 0), (0, 1, 0)):
+            with self.subTest(mode=args):
+                self.launch(*args, path=self.work)
+                if args[0]:
+                    self.keys('j', ',')             # a mark must not survive Esc
+                self.keys('Escape')
+                self.wait_exit()
+                self.assertEqual(self.result(), [])
+                tmux('kill-server')
+
+    def test_esc_in_visual_mode_only_leaves_it(self):
+        self.write(self.p('one.txt'))
+        self.write(self.p('two.txt'))
+        self.launch(1, 0, 0, self.work)
+        self.keys('V', 'j', 'Escape')
+        time.sleep(0.5)
+        self.assertEqual(tmux('has-session').returncode, 0, 'Esc in visual mode cancelled')
+        self.keys('Escape')
+        self.wait_exit()
+        self.assertEqual(self.result(), [])
+
     def test_dir_enter_picks_highlighted(self):
         os.mkdir(self.p('a'))
         os.mkdir(self.p('b'))

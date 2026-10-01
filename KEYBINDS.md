@@ -62,7 +62,7 @@ title bar, right after `user@host`, shows the mode. **Navigate with
 
 | Key | Action |
 |---|---|
-| `q` / `ZQ` | Cancel the dialog (every mode). With 2+ tabs open `q` closes a tab — the banner then says `Q cancel` |
+| `q` / `ZQ` / `Esc` | Cancel the dialog (every mode). `Esc` in visual mode only leaves visual mode. With 2+ tabs open `q` closes a tab — the banner then says `Q cancel` (`Esc` always cancels) |
 | `<C-l>` | Type a location (tab-completes). Folder → cd (in a folder dialog: picks it) · file → pick / save target. Outside a picker: redraw |
 | `<Space>fR` | Recent files (GTK `recently-used.xbel`) |
 | `<Space>au` | Zip the selection into a private `/tmp/ranger-upload-XXXX/` and send the archive |
@@ -140,7 +140,7 @@ Lowercase = system roots · Capital = places in `$HOME` (edit them at the end of
 | `uv` | Unmark all files |
 | `V` | Start visual mode (mark range) |
 | `uV` | Start reverse visual mode |
-| `Esc` | Leave visual mode and clear all marks |
+| `Esc` | Leave visual mode and clear all marks. In a file-picker dialog: cancel the dialog (visual mode: just leave it) |
 | `t` | Toggle tag on file (persistent across sessions) |
 | `ut` | Remove tag |
 | `"<char>` | Tag file with custom character (e.g. `"a`) |

@@ -404,6 +404,26 @@ class enter_or_pick(Command):
             self.fm.move(right=1)
 
 
+class escape_or_cancel(Command):
+    """:escape_or_cancel
+
+    Bound to <Esc>.  Visual mode → leave it (in every context).
+    In a picker dialog → cancel the dialog, like GTK's Esc.
+    Outside a picker → clear all marks.
+    """
+
+    def execute(self):
+        if self.fm.mode != 'normal':
+            self.fm.change_mode('normal')
+            if picker_mode() is None:
+                self.fm.mark_files(all=True, val=False)
+            return
+        if picker_mode() is not None:
+            self.fm.execute_console('quitall')     # nothing is written: cancel
+        else:
+            self.fm.mark_files(all=True, val=False)
+
+
 class pick_selection(Command):
     """:pick_selection
 
