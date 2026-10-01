@@ -259,6 +259,45 @@ class PickerE2E(unittest.TestCase):
         self.wait_exit()
         self.assertEqual(self.result(), [self.p('two.txt')])
 
+    # ── regressions ──────────────────────────────────────────────────────
+    def multi_tree(self):
+        os.mkdir(self.p('A'))
+        os.mkdir(self.p('B'))
+        self.write(self.p('A', 'a.txt'))
+        self.write(self.p('B', 'b1.txt'))
+        self.write(self.p('z.txt'))
+        self.age(self.p('A'), self.p('B'), self.p('z.txt'))   # gg → A, then B
+
+    def test_multi_enter_on_folder_with_marks_enters_it(self):
+        self.multi_tree()
+        self.launch(1, 0, 0, self.work)
+        # into A, mark a.txt, back out, down to B, ⏎ must enter B (not send it)
+        self.keys('g', 'g', 'l', ',', 'h', 'j', 'Enter')
+        self.wait_screen(lambda s: 'b1.txt' in s.splitlines()[0])
+        self.assertEqual(tmux('has-session').returncode, 0)
+        self.keys('Enter')          # ⏎ on b1.txt: marks + this file
+        self.wait_exit()
+        self.assertEqual(self.result(), [self.p('A', 'a.txt'), self.p('B', 'b1.txt')])
+
+    def test_banner_at_40_columns(self):
+        os.mkdir(self.p('a'))
+        screen = self.launch(0, 1, 0, self.work, cols=40, ready='cancel')
+        top = screen.splitlines()[0]
+        self.assertIn('PICK FOLDER', top)
+        self.assertIn('⏎ pick · q cancel', top)
+        self.keys('q')
+        self.wait_exit()
+
+    def test_save_banner_at_60_columns_long_name(self):
+        ph = self.save_setup('a-really-long-suggested-name-from-the-browser-2026.pdf')
+        screen = self.launch(0, 0, 1, ph, cols=60, ready='cancel')
+        top = screen.splitlines()[0]
+        self.assertIn('⏎ save here · q cancel', top)
+        self.assertIn('….pdf', top)
+        self.keys('q')
+        self.wait_exit()
+        self.assertEqual(self.result(), [])
+
 
 if __name__ == '__main__':
     unittest.main()

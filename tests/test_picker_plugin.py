@@ -59,7 +59,7 @@ class PluginTest(unittest.TestCase):
         self.assertIs(titlebar.TitleBar._get_left_part, self.orig_left)
 
     def test_open_mode_guards_execute_file(self):
-        # open mode too: a named program must launch, not pick
+        # open mode too: a named program must launch, not pick (see test_picker_audit)
         self.load({'RANGER_PICKER': 'open'})
         self.assertIsNot(actions.Actions.execute_file, self.orig_exec)
         self.assertIsNot(titlebar.TitleBar._get_left_part, self.orig_left)
