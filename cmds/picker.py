@@ -187,6 +187,21 @@ def resolve_target(text, cwd, name):
     return path
 
 
+def save_here(cwd, ph):
+    """What ⏎ would save in folder `cwd` → (name, state, clash).
+
+    name   the suggested name, bumped to 'name (N).ext' if it is taken
+    state  'ok' | 'taken' (name was bumped) | 'readonly' (cwd not writable)
+    clash  the suggested name when it was taken, else None
+    The placeholder itself never counts as taken."""
+    want = suggested_name(ph)
+    name = unique_name(cwd, want, free=ph)
+    clash = want if name != want else None
+    if not os.access(cwd, os.W_OK | os.X_OK):
+        return name, 'readonly', clash
+    return name, ('taken' if clash else 'ok'), clash
+
+
 def tilde(path):
     home = os.path.expanduser('~')
     if path == home or path.startswith(home + '/'):
@@ -369,7 +384,7 @@ def prompt_save(fm, fobj=None):
     elif fobj is not None and not _is_placeholder(fobj.path) and os.path.isfile(fobj.path):
         target = fobj.path
     else:
-        target = os.path.join(cwd, unique_name(cwd, suggested_name(ph), free=ph))
+        target = os.path.join(cwd, save_here(cwd, ph)[0])
     fm.open_console('pick_save ' + console_path(target, cwd))
 
 

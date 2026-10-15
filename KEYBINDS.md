@@ -55,10 +55,10 @@ title bar, right after `user@host`, shows the mode. **Navigate with
 
 | Mode (banner) | `⏎` does |
 |---|---|
-| `OPEN` | File → pick it · folder → enter |
-| `OPEN MULTI` | Folder → **always** enter · file → send the marks (marked folders flattened, hidden inside skipped) plus that file. Asks **y/N** when marked folders flatten into more than 20 files |
+| `OPEN` | File → pick it · folder → enter. Starts sorted newest-first, cursor on the newest file |
+| `OPEN MULTI` | Folder → **always** enter · file → send the marks (marked folders flattened, hidden inside skipped) plus that file. Asks **y/N** when marked folders flatten into more than 20 files. Starts newest-first like `OPEN` |
 | `PICK FOLDER` | Highlighted folder → pick it · empty folder → pick it · `h⏎` → pick the folder you're in |
-| `SAVE ▸ name` | **Saves in the folder you're in**, wherever the cursor is: opens `:pick_save <name>` prefilled, `⏎` again saves. Taken names become `name (1).ext` |
+| `SAVE ▸ name` | **Saves in the folder you're in**, wherever the cursor is: opens `:pick_save <name>` prefilled, `⏎` again saves. The file is shown as a dimmed `+ name  ⏎ saves here` row at the top of the listing that follows you from folder to folder (the portal's real placeholder is hidden and only moved when you save). Taken names become `name (1).ext` and the row says which name clashed |
 
 | Key | Action |
 |---|---|
@@ -69,7 +69,7 @@ title bar, right after `user@host`, shows the mode. **Navigate with
 | `,` · `v` · `V` · `uv` | Mark (cursor stays; `j` to move on) · invert all · visual range · clear marks |
 | `gD` | Jump to `~/Downloads` |
 
-In SAVE mode `l`/`→` on a folder enters it and on a
+In SAVE mode `l`/`→` on a folder enters it (the ghost row comes along) and on a
 file opens the save prompt for **replacing** that file (asks **Overwrite? y/N**) —
 no key saves or overwrites without the prompt. In MULTI mode `l` on a file sends like `⏎`; in PICK FOLDER
 mode `l` on a file does nothing (no app is launched from a folder dialog). Narrow

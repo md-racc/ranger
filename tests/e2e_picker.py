@@ -202,6 +202,48 @@ class PickerE2E(unittest.TestCase):
         self.assertEqual(self.result(), [])
         self.assertEqual(self.read(self.p('other.txt')), 'KEEP')
 
+    def test_save_into_subfolder(self):
+        ph = self.save_setup()
+        os.mkdir(self.p('sub'))
+        self.launch(0, 0, 1, ph)
+        # ⏎ on a folder saves *here*, not into it
+        self.keys('g', 'g')
+        self.keys('Enter')
+        self.wait_screen(lambda s: 'pick_save report.pdf' in s)
+        self.keys('Escape')
+        # l enters sub/, the ghost follows, ⏎ saves there
+        self.keys('l')
+        self.wait_screen(lambda s: 'report.pdf  ⏎ saves here' in s
+                         and '/sub' in s.splitlines()[0])
+        self.keys('Enter')
+        self.wait_screen(lambda s: 'pick_save report.pdf' in s)
+        self.keys('Enter')
+        self.wait_exit()
+        self.assertEqual(self.result(), [self.p('sub', 'report.pdf')])
+        self.assertFalse(os.path.exists(ph))
+
+    def test_save_ghost_row(self):
+        ph = self.save_setup()
+        os.mkdir(self.p('sub'))
+        self.write(self.p('sub', 'report.pdf'), 'OLD')
+        screen = self.launch(0, 0, 1, ph)
+        rows = screen.splitlines()
+        # row 1 of the main column is the ghost; the real placeholder is hidden
+        main = [r.split('│')[1] for r in rows[1:] if r.count('│') >= 2]
+        self.assertRegex(main[0], r'\+ \S* ?report\.pdf  ⏎ saves here')
+        self.assertEqual(sum('report.pdf' in r for r in main), 1, screen)
+        # the name lines up with the real rows below it
+        other = next(r for r in main if 'other.txt' in r)
+        self.assertEqual(main[0].index('report.pdf'), other.index('other.txt'), screen)
+        self.keys('g', 'g', 'l')
+        screen = self.wait_screen(lambda s: 'report (1).pdf' in s)
+        self.assertIn('report.pdf exists — l on it to replace', screen)
+        self.assertIn('SAVE ▸ report (1).pdf', screen.splitlines()[0])
+        self.keys('q')
+        self.wait_exit()
+        self.assertEqual(self.result(), [])
+        self.assertEqual(self.read(ph), 'HELP')     # never moved on cancel
+
     # ── folder ───────────────────────────────────────────────────────────
     def test_dir_quit_cancels(self):
         os.mkdir(self.p('a'))
@@ -258,6 +300,18 @@ class PickerE2E(unittest.TestCase):
         for i, path in enumerate(paths):
             os.utime(path, (now - 100 * i, now - 100 * i))
 
+    def test_open_single(self):
+        os.mkdir(self.p('dir'))
+        self.write(self.p('one.txt'))
+        self.write(self.p('two.txt'))
+        self.age(self.p('dir'), self.p('one.txt'), self.p('two.txt'))
+        screen = self.launch(0, 0, 0, self.work)
+        self.assertIn('OPEN', screen)
+        # newest first: the cursor starts on one.txt (the newest *file*)
+        self.keys('Enter')
+        self.wait_exit()
+        self.assertEqual(self.result(), [self.p('one.txt')])
+
     def test_open_multi_marks(self):
         self.write(self.p('one.txt'))
         self.write(self.p('two.txt'))
@@ -283,6 +337,7 @@ class PickerE2E(unittest.TestCase):
         self.wait_exit()
         self.assertEqual(self.result(), [self.p('two.txt')])
 
+
     # ── regressions ──────────────────────────────────────────────────────
     def multi_tree(self):
         os.mkdir(self.p('A'))
@@ -302,6 +357,14 @@ class PickerE2E(unittest.TestCase):
         self.keys('Enter')          # ⏎ on b1.txt: marks + this file
         self.wait_exit()
         self.assertEqual(self.result(), [self.p('A', 'a.txt'), self.p('B', 'b1.txt')])
+
+    def test_multi_l_flattens_marked_folder_and_adds_file(self):
+        self.multi_tree()
+        self.launch(1, 0, 0, self.work)
+        self.keys('g', 'g', ',')    # mark folder A (the cursor starts on z.txt)
+        self.keys('G', 'l')         # l on z.txt
+        self.wait_exit()
+        self.assertEqual(self.result(), [self.p('A', 'a.txt'), self.p('z.txt')])
 
     def test_banner_at_40_columns(self):
         os.mkdir(self.p('a'))
