@@ -1,6 +1,6 @@
 """File-picker mode: ranger as the xdg-desktop-portal-termfilechooser picker.
 
-A custom portal wrapper exports
+A custom portal wrapper (contract in the README) exports
 RANGER_PICKER=open|multi|dir|save, RANGER_PICKER_OUT (portal result file) and
 RANGER_PICKER_PATH (save: the placeholder file). open/multi still use ranger's
 --choosefile(s); dir/save get no --choose* flag, so only _finish() writes the

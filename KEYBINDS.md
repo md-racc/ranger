@@ -49,7 +49,7 @@
 ## File Picker (portal dialogs)
 
 Apps' file dialogs open ranger (xdg-desktop-portal-termfilechooser → a custom
-wrapper script that exports RANGER_PICKER*). A banner in the
+wrapper script; see the README's wrapper contract). A banner in the
 title bar, right after `user@host`, shows the mode. **Navigate with
 `hjkl`/zoxide/fzf, mark with `,`, finish with `⏎`, cancel with `q`.**
 
